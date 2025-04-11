@@ -1,0 +1,10 @@
+filme {
+    ator x;
+    x interpreta 5;
+    se (x > 3) cena {
+        x interpreta x + 10;
+    } corte {
+        x interpreta x - 2;
+    }
+    trilha (x);
+}

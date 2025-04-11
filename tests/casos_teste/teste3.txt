@@ -1,0 +1,10 @@
+filme {
+    ator a;
+    a interpreta 20;
+    take (a > 0) {
+        a interpreta a - 2;
+    }
+    se (a == 0) cena {
+        trilha (100);
+    }
+}

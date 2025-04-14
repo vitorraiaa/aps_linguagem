@@ -33,57 +33,72 @@ CineScript é uma linguagem de programação inclusiva com temática cinematogr�
 ## Uso Rápido
 
 1. **Compilação:**  
-   Requisitos: Flex, Bison e um compilador C (por exemplo, GCC).  
+   Requisitos: Flex, Bison, um compilador C (por exemplo, GCC) e LLVM com lli.  
    Execute:
    ```bash
    make
+   ```
+   
+2. **Execução:**  
+    Rode o programa compilado. O interpretador inicializa o gerador de código LLVM IR, processa a entrada e executa o código gerado usando o lli:
+      
+    ```bash
+    ./cinema
+    ```
 
-2. **Execução:** 
-
-    Rode o programa compilado:
-   ```bash
-   ./cinema
-
-
-3. **Exemplo de Código** 
-
-
-   ```plaintext
-    filme {
-        ator protagonista;
-        protagonista interpreta 10;
-        
-        se (protagonista > 5) cena {
-            protagonista interpreta protagonista + 5;
-            trilha("Ação");
-        } corte {
-            protagonista interpreta protagonista - 3;
-        }
-        
-        take (protagonista < 20) {
-            protagonista interpreta protagonista + 1;
-        }
+3. **Exemplo de Código:**
+    Um exemplo de programa CineScript:
+    ```bash
+   filme {
+      ator protagonista;
+      protagonista interpreta 10;
+      
+      se (protagonista > 5) cena {
+          protagonista interpreta protagonista + 5;
+          trilha("Ação");
+      } corte {
+          protagonista interpreta protagonista - 3;
+      }
+      
+      take (protagonista < 20) {
+          protagonista interpreta protagonista + 1;
+      }
     }
+   ```
+
+
+4. **Testes Automatizados:**
+
+    Os testes estão organizados na pasta tests/. Para executar todos os testes automaticamente, use:
+
+   ```bash
+   make test
+   ```
+
 
 
 ## Estrutura do Projeto
 
-
-    /CineScript
-    │
-    ├── README.md         # Este arquivo
-    ├── Makefile          # Automatização da compilação
-    │
-    ├── docs/
-    │   └── EBNF.md       # Especificação da gramática em EBNF
-    │
-    ├── src/
-    │   ├── lexer.l       # Análise léxica (Flex)
-    │   ├── parser.y      # Análise sintática (Bison)
-    │   └── main.c        # Integração e execução do interpretador
-    │
-    ├── examples/
-    │   └── exemplo_filme.txt  # Exemplo de programa CineScript
-    │
-    └── tests/
-        └── run_tests.sh  # Script para execução dos testes
+```bash
+/CineScript
+│
+├── README.md         # Este arquivo
+├── Makefile          # Automatização da compilação
+│
+├── docs/
+│   └── EBNF.md       # Especificação da gramática em EBNF
+│
+├── src/
+│   ├── lexer.l       # Análise léxica (Flex)
+│   ├── parser.y      # Análise sintática (Bison)
+│   ├── codegen.h     # Cabeçalho do gerador de código LLVM IR
+│   ├── codegen.c     # Implementação do gerador de código LLVM IR
+│   └── main.c        # Integração e execução do interpretador
+│
+│
+└── tests/
+    ├── test_valid.cine      # Teste válido
+    ├── test_valid2.cine     # Outro teste válido
+    ├── test_error.cine      # Teste com erro de sintaxe
+    ├── test_error2.cine     # Outro teste com erro
+```

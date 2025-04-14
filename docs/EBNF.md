@@ -26,7 +26,7 @@
                         O bloco é executado enquanto a condição especificada for verdadeira. */
 
 <comando_especial> ::= "trilha" "(" <expressao> ")" ";" ;
-                     /* Comando especial: "trilha" pode ser usado para invocar efeitos especiais ou ações complementares, por exemplo, uma trilha sonora. */
+                     /* Comando especial: "trilha" pode ser usado para invocar efeitos especiais ou ações complementares, isto é, um print. */
 
 <expressao_relacional> ::= <expressao_aritmetica>
                          | <expressao_aritmetica> ( "==" | "!=" | "<" | ">" | "<=" | ">=" ) <expressao_aritmetica>

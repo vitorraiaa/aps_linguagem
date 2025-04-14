@@ -2,21 +2,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-extern int yylex(void);  /* Declaração de yylex */
 void yyerror(const char *s);
+extern int yylex(void);
 %}
 
+/* União para os valores semânticos */
 %union {
     int number;
     char* string;
 }
 
+/* Declaração dos tokens.
+   Para NUMBER e IDENT, associamos o tipo <number> */
 %token FILME ATOR INTERPRETA SE CENA CORTE TAKE TRILHA
-%token <number> NUMBER
-%token <string> IDENT
+%token <number> NUMBER IDENT
+%token EQ NE LT GT LE GE
 
-%type <number> expressao termo fator
+/* Declaração dos tipos dos não-terminais que produzem valores inteiros */
+%type <number> expressao termo fator expressao_relacional
+
+/* Declaração das precedências e associatividades */
+%left '+' '-'
+%left '*' '/'
+%nonassoc EQ NE LT GT LE GE
 
 %%
 
@@ -39,22 +47,14 @@ comando:
 
 declaracao:
     ATOR IDENT ';'
-    {
-        printf("Declarando ator: %s\n", $2);
-        free($2);
-    }
     ;
 
 atribuicao:
     IDENT INTERPRETA expressao ';'
-    {
-        printf("Atribuição: %s interpreta %d\n", $1, $3);
-        free($1);
-    }
     ;
 
 condicional:
-    SE '(' expressao ')' CENA '{' lista_comandos '}' opt_corte
+    SE '(' expressao_relacional ')' CENA '{' lista_comandos '}' opt_corte
     ;
 
 opt_corte:
@@ -63,46 +63,41 @@ opt_corte:
     ;
 
 loop:
-    TAKE '(' expressao ')' '{' lista_comandos '}'
+    TAKE '(' expressao_relacional ')' '{' lista_comandos '}'
     ;
 
 comando_especial:
     TRILHA '(' expressao ')' ';'
-    {
-        printf("Trilha: %d\n", $3);
-    }
     ;
 
+/* Expressões aritméticas */
 expressao:
       expressao '+' termo { $$ = $1 + $3; }
     | expressao '-' termo { $$ = $1 - $3; }
-    | termo               { $$ = $1; }
+    | termo              { $$ = $1; }
     ;
 
 termo:
-      termo '*' fator
-            { $$ = $1 * $3; }
-    | termo '/' fator
-            {
-                if($3 == 0){
-                    yyerror("Divisão por zero");
-                    $$ = 0;
-                } else {
-                    $$ = $1 / $3;
-                }
-            }
-    | fator { $$ = $1; }
+      termo '*' fator { $$ = $1 * $3; }
+    | termo '/' fator { $$ = $1 / $3; }
+    | fator           { $$ = $1; }
     ;
 
 fator:
-      NUMBER { $$ = $1; }
-    | IDENT
-            {
-                printf("Identificador usado como número: %s (valor padrão 0)\n", $1);
-                free($1);
-                $$ = 0;
-            }
-    | '(' expressao ')' { $$ = $2; }
+      '(' expressao ')' { $$ = $2; }
+    | NUMBER            { $$ = $1; }
+    | IDENT             { $$ = 0; /* Placeholder: implementar recuperação do valor da variável */ }
+    ;
+
+/* Expressões relacionais – baseadas nas expressões aritméticas */
+expressao_relacional:
+      expressao                      { $$ = $1; }
+    | expressao EQ expressao         { $$ = ($1 == $3); }
+    | expressao NE expressao         { $$ = ($1 != $3); }
+    | expressao LT expressao         { $$ = ($1 <  $3); }
+    | expressao GT expressao         { $$ = ($1 >  $3); }
+    | expressao LE expressao         { $$ = ($1 <= $3); }
+    | expressao GE expressao         { $$ = ($1 >= $3); }
     ;
 
 %%

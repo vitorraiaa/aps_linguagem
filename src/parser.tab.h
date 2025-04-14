@@ -48,7 +48,13 @@
      TAKE = 264,
      TRILHA = 265,
      NUMBER = 266,
-     IDENT = 267
+     IDENT = 267,
+     EQ = 268,
+     NE = 269,
+     LT = 270,
+     GT = 271,
+     LE = 272,
+     GE = 273
    };
 #endif
 /* Tokens.  */
@@ -62,6 +68,12 @@
 #define TRILHA 265
 #define NUMBER 266
 #define IDENT 267
+#define EQ 268
+#define NE 269
+#define LT 270
+#define GT 271
+#define LE 272
+#define GE 273
 
 
 
@@ -74,7 +86,7 @@ typedef union YYSTYPE
     char* string;
 }
 /* Line 1529 of yacc.c.  */
-#line 78 "src/parser.tab.h"
+#line 90 "src/parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

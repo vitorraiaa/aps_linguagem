@@ -1,7 +1,0 @@
-filme {
-    ator protagonista;
-    protagonista interpreta 10;
-    take (protagonista < 15) {
-        protagonista interpreta protagonista + 1;
-    }
-}

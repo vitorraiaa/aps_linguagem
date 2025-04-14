@@ -1,0 +1,7 @@
+filme {
+  ator x;
+  x interpreta 20 * 2;
+  take ( x == 40 ) {
+    trilha( x );
+  }
+}

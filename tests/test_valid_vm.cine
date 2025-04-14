@@ -1,0 +1,5 @@
+filme {
+  ator x;
+  x interpreta 10 + 5;
+  trilha( x );
+}

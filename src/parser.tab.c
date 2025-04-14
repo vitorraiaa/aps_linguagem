@@ -111,6 +111,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "codegen.h"
 void yyerror(const char *s);
 extern int yylex(void);
 
@@ -137,8 +138,7 @@ extern int yylex(void);
 typedef union YYSTYPE
 #line 10 "src/parser.y"
 {
-    int number;
-    char* string;
+    char* reg;
 }
 /* Line 193 of yacc.c.  */
 #line 145 "src/parser.tab.c"
@@ -451,10 +451,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    32,    32,    35,    37,    41,    42,    43,    44,    45,
-      49,    53,    57,    60,    62,    66,    70,    75,    76,    77,
-      81,    82,    83,    87,    88,    89,    94,    95,    96,    97,
-      98,    99,   100
+       0,    28,    28,    35,    37,    41,    42,    43,    44,    45,
+      49,    63,    77,    82,    84,    90,    96,   107,   118,   129,
+     133,   144,   155,   159,   160,   170,   190,   191,   202,   213,
+     224,   235,   246
 };
 #endif
 
@@ -1401,89 +1401,284 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 17:
-#line 75 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (3)].number) + (yyvsp[(3) - (3)].number); ;}
+        case 2:
+#line 28 "src/parser.y"
+    {
+       finalize_codegen();
+       run_codegen();
+       cleanup_vm();
+    ;}
+    break;
+
+  case 10:
+#line 49 "src/parser.y"
+    {
+         /* Gera código para alocar a variável */
+         char *alloc_reg = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = alloca i32", alloc_reg);
+             emit_code(buf);
+         }
+         add_symbol((yyvsp[(2) - (3)].reg), alloc_reg);
+         free((yyvsp[(2) - (3)].reg));
+    ;}
+    break;
+
+  case 11:
+#line 63 "src/parser.y"
+    {
+         const char *alloc_reg = get_symbol_alloca((yyvsp[(1) - (4)].reg));
+         if (!alloc_reg) {
+             yyerror("Variável não declarada");
+         } else {
+             char buf[256];
+             sprintf(buf, "  store i32 %s, i32* %s", (yyvsp[(3) - (4)].reg), alloc_reg);
+             emit_code(buf);
+         }
+         free((yyvsp[(1) - (4)].reg));
+    ;}
+    break;
+
+  case 12:
+#line 77 "src/parser.y"
+    {
+         emit_code("  ; Estrutura condicional não implementada completamente");
+    ;}
+    break;
+
+  case 14:
+#line 84 "src/parser.y"
+    {
+         emit_code("  ; Bloco 'corte' (else) não implementado");
+    ;}
+    break;
+
+  case 15:
+#line 90 "src/parser.y"
+    {
+         emit_code("  ; Loop não implementado completamente");
+    ;}
+    break;
+
+  case 16:
+#line 96 "src/parser.y"
+    {
+         /* Note: $1 = TRILHA, $2 = '(' (literal), $3 = expressao, $4 = ')' e $5 = ';' */
+         char buf[256];
+         sprintf(buf, "  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @print.str, i32 0, i32 0), i32 %s)", (yyvsp[(3) - (5)].reg));
+         emit_code(buf);
+         free((yyvsp[(3) - (5)].reg));
+    ;}
+    break;
+
+  case 17:
+#line 107 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = add i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 18:
-#line 76 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (3)].number) - (yyvsp[(3) - (3)].number); ;}
+#line 118 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = sub i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 19:
-#line 77 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (1)].number); ;}
+#line 129 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 20:
-#line 81 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (3)].number) * (yyvsp[(3) - (3)].number); ;}
+#line 133 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = mul i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 21:
-#line 82 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (3)].number) / (yyvsp[(3) - (3)].number); ;}
+#line 144 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = sdiv i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 22:
-#line 83 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (1)].number); ;}
+#line 155 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 23:
-#line 87 "src/parser.y"
-    { (yyval.number) = (yyvsp[(2) - (3)].number); ;}
+#line 159 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(2) - (3)].reg); ;}
     break;
 
   case 24:
-#line 88 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (1)].number); ;}
+#line 160 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = add i32 0, %s", temp, (yyvsp[(1) - (1)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (1)].reg));
+      ;}
     break;
 
   case 25:
-#line 89 "src/parser.y"
-    { (yyval.number) = 0; /* Placeholder: implementar recuperação do valor da variável */ ;}
+#line 170 "src/parser.y"
+    {
+         const char *alloc_reg = get_symbol_alloca((yyvsp[(1) - (1)].reg));
+         if (!alloc_reg) {
+             yyerror("Variável não declarada");
+             (yyval.reg) = strdup("0");
+         } else {
+             char *temp = new_temp();
+             {
+                 char buf[256];
+                 sprintf(buf, "  %s = load i32, i32* %s", temp, alloc_reg);
+                 emit_code(buf);
+             }
+             (yyval.reg) = temp;
+         }
+         free((yyvsp[(1) - (1)].reg));
+      ;}
     break;
 
   case 26:
-#line 94 "src/parser.y"
-    { (yyval.number) = (yyvsp[(1) - (1)].number); ;}
+#line 190 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 27:
-#line 95 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) == (yyvsp[(3) - (3)].number)); ;}
+#line 191 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp eq i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 28:
-#line 96 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) != (yyvsp[(3) - (3)].number)); ;}
+#line 202 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp ne i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 29:
-#line 97 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) <  (yyvsp[(3) - (3)].number)); ;}
+#line 213 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp slt i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 30:
-#line 98 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) >  (yyvsp[(3) - (3)].number)); ;}
+#line 224 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp sgt i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 31:
-#line 99 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) <= (yyvsp[(3) - (3)].number)); ;}
+#line 235 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp sle i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 32:
-#line 100 "src/parser.y"
-    { (yyval.number) = ((yyvsp[(1) - (3)].number) >= (yyvsp[(3) - (3)].number)); ;}
+#line 246 "src/parser.y"
+    {
+         char *temp = new_temp();
+         {
+             char buf[256];
+             sprintf(buf, "  %s = icmp sge i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+             emit_code(buf);
+         }
+         (yyval.reg) = temp;
+         free((yyvsp[(1) - (3)].reg));
+         free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1487 "src/parser.tab.c"
+#line 1682 "src/parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1697,7 +1892,7 @@ yyreturn:
 }
 
 
-#line 103 "src/parser.y"
+#line 259 "src/parser.y"
 
 
 void yyerror(const char *s) {

@@ -82,11 +82,10 @@
 typedef union YYSTYPE
 #line 10 "src/parser.y"
 {
-    int number;
-    char* string;
+    char* reg;
 }
 /* Line 1529 of yacc.c.  */
-#line 90 "src/parser.tab.h"
+#line 89 "src/parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

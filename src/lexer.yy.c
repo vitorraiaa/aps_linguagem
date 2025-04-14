@@ -831,12 +831,12 @@ YY_RULE_SETUP
 case 15:
 YY_RULE_SETUP
 #line 25 "src/lexer.l"
-{ yylval.number = atoi(yytext); return NUMBER; }
+{ yylval.reg = strdup(yytext); return NUMBER; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 26 "src/lexer.l"
-{ yylval.number = 0; return IDENT; }
+{ yylval.reg = strdup(yytext); return IDENT; }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */

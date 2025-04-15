@@ -1,0 +1,6 @@
+filme {
+  ator c como "Câmera";
+  fadein ( 3 );
+  fadeout ( 2 );
+  movimenta ( c, para "esquerda" );
+}

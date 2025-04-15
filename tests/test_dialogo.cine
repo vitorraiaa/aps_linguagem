@@ -1,0 +1,4 @@
+filme {
+  ator p como "Protagonista";
+  dialogo ( p ) : "Bom dia, mundo!";
+}

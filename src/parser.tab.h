@@ -47,14 +47,21 @@
      CORTE = 263,
      TAKE = 264,
      TRILHA = 265,
-     NUMBER = 266,
-     IDENT = 267,
-     EQ = 268,
-     NE = 269,
-     LT = 270,
-     GT = 271,
-     LE = 272,
-     GE = 273
+     COMO = 266,
+     DIALOGO = 267,
+     FADEIN = 268,
+     FADEOUT = 269,
+     MOVIMENTA = 270,
+     PARA = 271,
+     NUMBER = 272,
+     IDENT = 273,
+     STRING = 274,
+     EQ = 275,
+     NE = 276,
+     LT = 277,
+     GT = 278,
+     LE = 279,
+     GE = 280
    };
 #endif
 /* Tokens.  */
@@ -66,14 +73,21 @@
 #define CORTE 263
 #define TAKE 264
 #define TRILHA 265
-#define NUMBER 266
-#define IDENT 267
-#define EQ 268
-#define NE 269
-#define LT 270
-#define GT 271
-#define LE 272
-#define GE 273
+#define COMO 266
+#define DIALOGO 267
+#define FADEIN 268
+#define FADEOUT 269
+#define MOVIMENTA 270
+#define PARA 271
+#define NUMBER 272
+#define IDENT 273
+#define STRING 274
+#define EQ 275
+#define NE 276
+#define LT 277
+#define GT 278
+#define LE 279
+#define GE 280
 
 
 
@@ -85,7 +99,7 @@ typedef union YYSTYPE
     char* reg;
 }
 /* Line 1529 of yacc.c.  */
-#line 89 "src/parser.tab.h"
+#line 103 "src/parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

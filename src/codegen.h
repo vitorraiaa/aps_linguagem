@@ -17,7 +17,7 @@ void run_codegen();
 /* Função de limpeza, se necessário. */
 void cleanup_vm();
 
-/* Retorna um novo temporário (ex: %t1, %t2) para uso em IR */
+/* Retorna um novo temporário (ex.: %t1, %t2) para uso no IR */
 char* new_temp();
 
 /* Funções de gerenciamento de símbolo */

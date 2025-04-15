@@ -1,7 +1,9 @@
 filme {
-  ator x;
-  x interpreta 20 * 2;
-  take ( x == 40 ) {
-    trilha( x );
+  ator a como "Herói";
+  a interpreta 15 + 10;
+  se ( a >= 20 ) cena { 
+      trilha( a );
+  } corte { 
+      trilha( 0 );
   }
 }

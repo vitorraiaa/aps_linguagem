@@ -15,6 +15,16 @@
 "take"           { return TAKE; }
 "trilha"         { return TRILHA; }
 
+"como"           { return COMO; }
+"dialogo"        { return DIALOGO; }
+"fadein"         { return FADEIN; }
+"fadeout"        { return FADEOUT; }
+"movimenta"      { return MOVIMENTA; }
+"para"           { return PARA; }
+
+
+\"([^\\\"]|\\.)*\" { yylval.reg = strdup(yytext); return STRING; }
+
 "=="             { return EQ; }
 "!="             { return NE; }
 "<="             { return LE; }

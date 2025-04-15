@@ -11,9 +11,12 @@ extern int yylex(void);
     char* reg;
 }
 
+/* Declaração dos tokens (incluindo STRING com o tipo <reg>) */
 %token FILME ATOR INTERPRETA SE CENA CORTE TAKE TRILHA
+%token COMO DIALOGO FADEIN FADEOUT MOVIMENTA PARA
 %token <reg> NUMBER
 %token <reg> IDENT
+%token <reg> STRING
 %token EQ NE LT GT LE GE
 
 %type <reg> expressao termo fator expressao_relacional
@@ -43,10 +46,14 @@ comando:
     | condicional
     | loop
     | comando_especial
+    | dialogo
+    | efeito_transicao
+    | direcao
     ;
 
+/* Declaração com papel */
 declaracao:
-    ATOR IDENT ';' {
+    ATOR IDENT COMO STRING ';' {
          /* Gera código para alocar a variável */
          char *alloc_reg = new_temp();
          {
@@ -55,7 +62,7 @@ declaracao:
              emit_code(buf);
          }
          add_symbol($2, alloc_reg);
-         free($2);
+         free($2); free($4);
     }
     ;
 
@@ -75,7 +82,7 @@ atribuicao:
 
 condicional:
     SE '(' expressao_relacional ')' CENA '{' lista_comandos '}' opt_corte {
-         emit_code("  ; Estrutura condicional não implementada completamente");
+         emit_code("  ; Estrutura condicional (if) não implementada completamente");
     }
     ;
 
@@ -94,11 +101,47 @@ loop:
 
 comando_especial:
     TRILHA '(' expressao ')' ';' {
-         /* Note: $1 = TRILHA, $2 = '(' (literal), $3 = expressao, $4 = ')' e $5 = ';' */
          char buf[256];
          sprintf(buf, "  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @print.str, i32 0, i32 0), i32 %s)", $3);
          emit_code(buf);
          free($3);
+    }
+    ;
+
+/* Comando de diálogo */
+dialogo:
+    DIALOGO '(' IDENT ')' ':' STRING ';' {
+         char buf[256];
+         /* $3 contém o IDENT e $6 a STRING */
+         sprintf(buf, "  ; Dialogo: %s diz %s", $3, $6);
+         emit_code(buf);
+         free($3); free($6);
+    }
+    ;
+    
+/* Comando de efeitos de transição */
+efeito_transicao:
+    FADEIN '(' NUMBER ')' ';' {
+         char buf[256];
+         sprintf(buf, "  ; Efeito: fadein %s", $3);
+         emit_code(buf);
+         free($3);
+    }
+    | FADEOUT '(' NUMBER ')' ';' {
+         char buf[256];
+         sprintf(buf, "  ; Efeito: fadeout %s", $3);
+         emit_code(buf);
+         free($3);
+    }
+    ;
+
+/* Comando de direção */
+direcao:
+    MOVIMENTA '(' IDENT ',' PARA STRING ')' ';' {
+         char buf[256];
+         sprintf(buf, "  ; Direcao: movimenta %s para %s", $3, $6);
+         emit_code(buf);
+         free($3); free($6);
     }
     ;
 
@@ -112,8 +155,7 @@ expressao:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao '-' termo {
          char *temp = new_temp();
@@ -123,8 +165,7 @@ expressao:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | termo { $$ = $1; }
     ;
@@ -138,8 +179,7 @@ termo:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | termo '/' fator {
          char *temp = new_temp();
@@ -149,8 +189,7 @@ termo:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | fator { $$ = $1; }
     ;
@@ -196,8 +235,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao NE expressao {
          char *temp = new_temp();
@@ -207,8 +245,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao LT expressao {
          char *temp = new_temp();
@@ -218,8 +255,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao GT expressao {
          char *temp = new_temp();
@@ -229,8 +265,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao LE expressao {
          char *temp = new_temp();
@@ -240,8 +275,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     | expressao GE expressao {
          char *temp = new_temp();
@@ -251,8 +285,7 @@ expressao_relacional:
              emit_code(buf);
          }
          $$ = temp;
-         free($1);
-         free($3);
+         free($1); free($3);
       }
     ;
 

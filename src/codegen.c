@@ -61,8 +61,7 @@ void finalize_codegen() {
 }
 
 void run_codegen() {
-    /* Ajuste o caminho para lli conforme a sua instalação.
-       Exemplo para Homebrew no macOS: */
+    /* Ajuste o caminho para lli conforme sua instalação (exemplo para Homebrew no macOS) */
     system("/usr/local/opt/llvm/bin/lli out.ll");
 }
 

@@ -1,5 +1,0 @@
-filme {
-  ator b;
-  b interpreta 30 + 10;
-  se ( b >= 40 ) cena { 
-    trilha( b );

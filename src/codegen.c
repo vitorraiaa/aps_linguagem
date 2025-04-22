@@ -17,7 +17,8 @@ char* new_temp() {
 
 char* new_label() {
     char *l = malloc(32);
-    sprintf(l, "label%d", label_counter++);
+    // usar prefixo 'L' para não conflitar com a keyword LLVM 'label'
+    sprintf(l, "L%d", label_counter++);
     return l;
 }
 
@@ -48,8 +49,14 @@ const char* get_symbol_alloca(const char *name) {
 void init_codegen() {
     fp = fopen("out.ll", "w");
     if (!fp) { perror("out.ll"); exit(1); }
+    // declarações core
     fprintf(fp, "declare i32 @printf(i8*, ...)\n");
     fprintf(fp, "@print.str = constant [4 x i8] c\"%%d\\0A\\00\"\n");
+    // declarações do runtime
+    fprintf(fp, "declare void @show_dialogue(i8*, i8*)\n");
+    fprintf(fp, "declare void @move_camera(i8*, i8*)\n");
+    fprintf(fp, "declare void @fade_in(i32)\n");
+    fprintf(fp, "declare void @fade_out(i32)\n");
     fprintf(fp, "define i32 @main() {\n");
 }
 

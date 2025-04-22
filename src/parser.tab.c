@@ -126,6 +126,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "codegen.h"
+
+// protótipos do runtime
+void show_dialogue(const char *ator, const char *texto);
+void move_camera(const char *ator, const char *pos);
+void fade_in(int t);
+void fade_out(int t);
+
 void yyerror(const char *s);
 extern int yylex(void);
 
@@ -154,12 +161,12 @@ static int  if_count = 0;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 16 "src/parser.y"
+#line 23 "src/parser.y"
 {
     char* reg;
 }
 /* Line 193 of yacc.c.  */
-#line 163 "src/parser.tab.c"
+#line 170 "src/parser.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -172,7 +179,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 176 "src/parser.tab.c"
+#line 183 "src/parser.tab.c"
 
 #ifdef short
 # undef short
@@ -475,11 +482,11 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    34,    34,    41,    43,    47,    48,    49,    50,    51,
-      52,    53,    54,    58,    69,    83,   101,    82,   126,   128,
-     132,   138,   150,   159,   165,   174,   185,   192,   199,   203,
-     210,   217,   221,   222,   229,   246,   253,   260,   267,   274,
-     281,   288
+       0,    41,    41,    48,    50,    54,    55,    56,    57,    58,
+      59,    60,    61,    65,    76,    90,   108,    89,   133,   135,
+     139,   145,   157,   164,   168,   175,   184,   191,   198,   202,
+     209,   216,   220,   221,   228,   243,   250,   257,   264,   271,
+     278,   285
 };
 #endif
 
@@ -1449,7 +1456,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 34 "src/parser.y"
+#line 41 "src/parser.y"
     {
         finalize_codegen();
         run_codegen();
@@ -1458,7 +1465,7 @@ yyreduce:
     break;
 
   case 13:
-#line 58 "src/parser.y"
+#line 65 "src/parser.y"
     {
         char *alloc = new_temp();
         char buf[128];
@@ -1470,7 +1477,7 @@ yyreduce:
     break;
 
   case 14:
-#line 69 "src/parser.y"
+#line 76 "src/parser.y"
     {
         const char *a = get_symbol_alloca((yyvsp[(1) - (4)].reg));
         if (!a) yyerror("Variável não declarada");
@@ -1484,7 +1491,7 @@ yyreduce:
     break;
 
   case 15:
-#line 83 "src/parser.y"
+#line 90 "src/parser.y"
     {
         char *cond = (yyvsp[(3) - (5)].reg);
         char *Lthen = new_label();
@@ -1505,7 +1512,7 @@ yyreduce:
     break;
 
   case 16:
-#line 101 "src/parser.y"
+#line 108 "src/parser.y"
     {
         char *Lthen = then_stack[if_count-1];
         char *Lelse = else_stack[if_count-1];
@@ -1519,7 +1526,7 @@ yyreduce:
     break;
 
   case 17:
-#line 112 "src/parser.y"
+#line 119 "src/parser.y"
     {
         char *Lend = end_stack[if_count-1];
         char buf[256];
@@ -1535,14 +1542,14 @@ yyreduce:
     break;
 
   case 20:
-#line 132 "src/parser.y"
+#line 139 "src/parser.y"
     {
         emit_code("  ; loop não implementado");
     ;}
     break;
 
   case 21:
-#line 138 "src/parser.y"
+#line 145 "src/parser.y"
     {
         char buf[256];
         sprintf(buf,
@@ -1555,47 +1562,39 @@ yyreduce:
     break;
 
   case 22:
-#line 150 "src/parser.y"
+#line 157 "src/parser.y"
     {
-        char buf[128];
-        sprintf(buf, "  ; diálogo: %s diz %s", (yyvsp[(3) - (7)].reg), (yyvsp[(6) - (7)].reg));
-        emit_code(buf);
+        show_dialogue((yyvsp[(3) - (7)].reg), (yyvsp[(6) - (7)].reg));
         free((yyvsp[(3) - (7)].reg)); free((yyvsp[(6) - (7)].reg));
     ;}
     break;
 
   case 23:
-#line 159 "src/parser.y"
+#line 164 "src/parser.y"
     {
-        char buf[64];
-        sprintf(buf, "  ; fadein %s", (yyvsp[(3) - (5)].reg));
-        emit_code(buf);
+        fade_in(atoi((yyvsp[(3) - (5)].reg)));
         free((yyvsp[(3) - (5)].reg));
     ;}
     break;
 
   case 24:
-#line 165 "src/parser.y"
+#line 168 "src/parser.y"
     {
-        char buf[64];
-        sprintf(buf, "  ; fadeout %s", (yyvsp[(3) - (5)].reg));
-        emit_code(buf);
+        fade_out(atoi((yyvsp[(3) - (5)].reg)));
         free((yyvsp[(3) - (5)].reg));
     ;}
     break;
 
   case 25:
-#line 174 "src/parser.y"
+#line 175 "src/parser.y"
     {
-        char buf[128];
-        sprintf(buf, "  ; movimenta %s para %s", (yyvsp[(3) - (8)].reg), (yyvsp[(6) - (8)].reg));
-        emit_code(buf);
+        move_camera((yyvsp[(3) - (8)].reg), (yyvsp[(6) - (8)].reg));
         free((yyvsp[(3) - (8)].reg)); free((yyvsp[(6) - (8)].reg));
     ;}
     break;
 
   case 26:
-#line 185 "src/parser.y"
+#line 184 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1606,7 +1605,7 @@ yyreduce:
     break;
 
   case 27:
-#line 192 "src/parser.y"
+#line 191 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1617,12 +1616,12 @@ yyreduce:
     break;
 
   case 28:
-#line 199 "src/parser.y"
+#line 198 "src/parser.y"
     { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 29:
-#line 203 "src/parser.y"
+#line 202 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1633,7 +1632,7 @@ yyreduce:
     break;
 
   case 30:
-#line 210 "src/parser.y"
+#line 209 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1644,17 +1643,17 @@ yyreduce:
     break;
 
   case 31:
-#line 217 "src/parser.y"
+#line 216 "src/parser.y"
     { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 32:
-#line 221 "src/parser.y"
+#line 220 "src/parser.y"
     { (yyval.reg) = (yyvsp[(2) - (3)].reg); ;}
     break;
 
   case 33:
-#line 222 "src/parser.y"
+#line 221 "src/parser.y"
     {
           char *t = new_temp();
           char buf[64];
@@ -1665,7 +1664,7 @@ yyreduce:
     break;
 
   case 34:
-#line 229 "src/parser.y"
+#line 228 "src/parser.y"
     {
           const char *a = get_symbol_alloca((yyvsp[(1) - (1)].reg));
           if (!a) { yyerror("Variável não declarada"); (yyval.reg) = strdup("0"); }
@@ -1681,7 +1680,7 @@ yyreduce:
     break;
 
   case 35:
-#line 246 "src/parser.y"
+#line 243 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1692,7 +1691,7 @@ yyreduce:
     break;
 
   case 36:
-#line 253 "src/parser.y"
+#line 250 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1703,7 +1702,7 @@ yyreduce:
     break;
 
   case 37:
-#line 260 "src/parser.y"
+#line 257 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1714,7 +1713,7 @@ yyreduce:
     break;
 
   case 38:
-#line 267 "src/parser.y"
+#line 264 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1725,7 +1724,7 @@ yyreduce:
     break;
 
   case 39:
-#line 274 "src/parser.y"
+#line 271 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1736,7 +1735,7 @@ yyreduce:
     break;
 
   case 40:
-#line 281 "src/parser.y"
+#line 278 "src/parser.y"
     {
           char *t = new_temp();
           char buf[128];
@@ -1747,16 +1746,15 @@ yyreduce:
     break;
 
   case 41:
-#line 288 "src/parser.y"
+#line 285 "src/parser.y"
     {
-          /* fallback: sem comparação, apenas retorna o valor i32 */
           (yyval.reg) = (yyvsp[(1) - (1)].reg);
       ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1760 "src/parser.tab.c"
+#line 1758 "src/parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1970,10 +1968,9 @@ yyreturn:
 }
 
 
-#line 294 "src/parser.y"
+#line 290 "src/parser.y"
 
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro: %s\n", s);
 }
-

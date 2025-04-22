@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "codegen.h"
+
+// protótipos do runtime
+void show_dialogue(const char *ator, const char *texto);
+void move_camera(const char *ator, const char *pos);
+void fade_in(int t);
+void fade_out(int t);
+
 void yyerror(const char *s);
 extern int yylex(void);
 
@@ -148,33 +155,25 @@ comando_especial:
 
 dialogo:
     DIALOGO '(' IDENT ')' ':' STRING ';' {
-        char buf[128];
-        sprintf(buf, "  ; diálogo: %s diz %s", $3, $6);
-        emit_code(buf);
+        show_dialogue($3, $6);
         free($3); free($6);
     }
     ;
 
 efeito_transicao:
     FADEIN '(' NUMBER ')' ';' {
-        char buf[64];
-        sprintf(buf, "  ; fadein %s", $3);
-        emit_code(buf);
+        fade_in(atoi($3));
         free($3);
     }
   | FADEOUT '(' NUMBER ')' ';' {
-        char buf[64];
-        sprintf(buf, "  ; fadeout %s", $3);
-        emit_code(buf);
+        fade_out(atoi($3));
         free($3);
     }
     ;
 
 direcao:
     MOVIMENTA '(' IDENT ',' PARA STRING ')' ';' {
-        char buf[128];
-        sprintf(buf, "  ; movimenta %s para %s", $3, $6);
-        emit_code(buf);
+        move_camera($3, $6);
         free($3); free($6);
     }
     ;
@@ -240,8 +239,6 @@ fator:
       }
     ;
 
-/* EXPRESSÕES RELACIONAIS – operadores primeiro, depois fallback */
-
 expressao_relacional:
       expressao EQ expressao {
           char *t = new_temp();
@@ -286,7 +283,6 @@ expressao_relacional:
           $$ = t; free($1); free($3);
       }
     | expressao {
-          /* fallback: sem comparação, apenas retorna o valor i32 */
           $$ = $1;
       }
     ;

@@ -1,18 +1,18 @@
-# Makefile para CineScript com LLVM (macOS - sem -lfl)
+# Makefile para CineScript com LLVM + runtime (macOS - sem -lfl)
 
-CC = gcc
-CFLAGS = -Wall -g
+CC        = gcc
+CFLAGS    = -Wall -g
 
-SRC_DIR = src
+SRC_DIR   = src
 TESTS_DIR = tests
 
-BISON_FILE = $(SRC_DIR)/parser.tab.c
+BISON_FILE   = $(SRC_DIR)/parser.tab.c
 BISON_HEADER = $(SRC_DIR)/parser.tab.h
-FLEX_FILE = $(SRC_DIR)/lexer.yy.c
+FLEX_FILE    = $(SRC_DIR)/lexer.yy.c
+RUNTIME_SRC  = $(SRC_DIR)/runtime.c
 
-TARGET = cinema
-
-TEST_FILES = $(wildcard $(TESTS_DIR)/*.cine)
+TARGET       = cinema
+TEST_FILES   = $(wildcard $(TESTS_DIR)/*.cine)
 
 all: $(TARGET)
 
@@ -22,8 +22,14 @@ $(BISON_FILE) $(BISON_HEADER): $(SRC_DIR)/parser.y
 $(FLEX_FILE): $(SRC_DIR)/lexer.l $(BISON_HEADER)
 	flex -o $(FLEX_FILE) $(SRC_DIR)/lexer.l
 
-$(TARGET): $(SRC_DIR)/main.c $(BISON_FILE) $(FLEX_FILE) $(SRC_DIR)/codegen.c
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC_DIR)/main.c $(BISON_FILE) $(FLEX_FILE) $(SRC_DIR)/codegen.c
+$(TARGET): $(SRC_DIR)/main.c $(BISON_FILE) $(FLEX_FILE) \
+           $(SRC_DIR)/codegen.c $(RUNTIME_SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) \
+	  $(SRC_DIR)/main.c \
+	  $(BISON_FILE) \
+	  $(FLEX_FILE) \
+	  $(SRC_DIR)/codegen.c \
+	  $(RUNTIME_SRC)
 
 test: all
 	@echo "==== Iniciando testes ===="

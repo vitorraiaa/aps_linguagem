@@ -94,7 +94,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 16 "src/parser.y"
+#line 23 "src/parser.y"
 {
     char* reg;
 }

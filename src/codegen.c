@@ -1,15 +1,24 @@
+// src/codegen.c
+
 #include "codegen.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 static FILE *fp = NULL;
-static int temp_counter = 1;
+static int temp_counter  = 1;
+static int label_counter = 1;
 
 char* new_temp() {
-    char *temp = malloc(32);
-    sprintf(temp, "%%t%d", temp_counter++);
-    return temp;
+    char *t = malloc(32);
+    sprintf(t, "%%t%d", temp_counter++);
+    return t;
+}
+
+char* new_label() {
+    char *l = malloc(32);
+    sprintf(l, "label%d", label_counter++);
+    return l;
 }
 
 typedef struct {
@@ -17,41 +26,35 @@ typedef struct {
     char *alloca_reg;
 } Symbol;
 
-static Symbol symbol_table[100];
-static int symbol_count = 0;
+static Symbol symtab[100];
+static int symcount = 0;
 
 void add_symbol(const char *name, const char *alloca_reg) {
-    if(symbol_count < 100) {
-        symbol_table[symbol_count].name = strdup(name);
-        symbol_table[symbol_count].alloca_reg = strdup(alloca_reg);
-        symbol_count++;
+    if (symcount < 100) {
+        symtab[symcount].name       = strdup(name);
+        symtab[symcount].alloca_reg = strdup(alloca_reg);
+        symcount++;
     }
 }
 
 const char* get_symbol_alloca(const char *name) {
-    for (int i = 0; i < symbol_count; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0) {
-            return symbol_table[i].alloca_reg;
-        }
+    for (int i = 0; i < symcount; i++) {
+        if (strcmp(symtab[i].name, name) == 0)
+            return symtab[i].alloca_reg;
     }
     return NULL;
 }
 
 void init_codegen() {
     fp = fopen("out.ll", "w");
-    if (!fp) {
-        perror("Não foi possível abrir out.ll");
-        exit(1);
-    }
+    if (!fp) { perror("out.ll"); exit(1); }
     fprintf(fp, "declare i32 @printf(i8*, ...)\n");
     fprintf(fp, "@print.str = constant [4 x i8] c\"%%d\\0A\\00\"\n");
     fprintf(fp, "define i32 @main() {\n");
 }
 
 void emit_code(const char* code) {
-    if (fp) {
-        fprintf(fp, "%s\n", code);
-    }
+    if (fp) fprintf(fp, "%s\n", code);
 }
 
 void finalize_codegen() {
@@ -61,13 +64,13 @@ void finalize_codegen() {
 }
 
 void run_codegen() {
-    /* Ajuste o caminho para lli conforme sua instalação (exemplo para Homebrew no macOS) */
+    /* ajuste o caminho para lli se necessário (macOS/Homebrew) */
     system("/usr/local/opt/llvm/bin/lli out.ll");
 }
 
 void cleanup_vm() {
-    for (int i = 0; i < symbol_count; i++) {
-        free(symbol_table[i].name);
-        free(symbol_table[i].alloca_reg);
+    for (int i = 0; i < symcount; i++) {
+        free(symtab[i].name);
+        free(symtab[i].alloca_reg);
     }
 }

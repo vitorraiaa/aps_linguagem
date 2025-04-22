@@ -1,3 +1,5 @@
+/* src/lexer.l */
+
 %{
 #include "parser.tab.h"
 #include <stdlib.h>
@@ -5,7 +7,6 @@
 %}
 
 %%
-
 "filme"          { return FILME; }
 "ator"           { return ATOR; }
 "interpreta"     { return INTERPRETA; }
@@ -22,8 +23,7 @@
 "movimenta"      { return MOVIMENTA; }
 "para"           { return PARA; }
 
-
-\"([^\\\"]|\\.)*\" { yylval.reg = strdup(yytext); return STRING; }
+\"[^\"\n]*\"     { yylval.reg = strdup(yytext); return STRING; }
 
 "=="             { return EQ; }
 "!="             { return NE; }
@@ -35,9 +35,8 @@
 [0-9]+           { yylval.reg = strdup(yytext); return NUMBER; }
 [a-zA-Z][a-zA-Z0-9]* { yylval.reg = strdup(yytext); return IDENT; }
 
-[ \t\n]+         { /* ignora espaços, tabulações e quebras de linha */ }
+[ \t\n]+         { /* ignora espaços */ }
 .                { return yytext[0]; }
-
 %%
 
 int yywrap(void) {

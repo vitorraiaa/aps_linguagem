@@ -120,7 +120,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "src/parser.y"
+#line 3 "src/parser.y"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,6 +128,10 @@
 #include "codegen.h"
 void yyerror(const char *s);
 extern int yylex(void);
+
+/* Pilhas para gerenciar rótulos de IF nested */
+static char *then_stack[100], *else_stack[100], *end_stack[100];
+static int  if_count = 0;
 
 
 /* Enabling traces.  */
@@ -150,12 +154,12 @@ extern int yylex(void);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 10 "src/parser.y"
+#line 16 "src/parser.y"
 {
     char* reg;
 }
 /* Line 193 of yacc.c.  */
-#line 159 "src/parser.tab.c"
+#line 163 "src/parser.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -168,7 +172,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 172 "src/parser.tab.c"
+#line 176 "src/parser.tab.c"
 
 #ifdef short
 # undef short
@@ -388,11 +392,11 @@ union yyalloc
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  37
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  17
+#define YYNNTS  19
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  39
+#define YYNRULES  41
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  103
+#define YYNSTATES  105
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -441,39 +445,41 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint8 yyprhs[] =
 {
        0,     0,     3,     8,     9,    12,    14,    16,    18,    20,
-      22,    24,    26,    28,    34,    39,    49,    50,    55,    63,
-      69,    77,    83,    89,    98,   102,   106,   108,   112,   116,
-     118,   122,   124,   126,   128,   132,   136,   140,   144,   148
+      22,    24,    26,    28,    34,    39,    40,    41,    53,    54,
+      59,    67,    73,    81,    87,    93,   102,   106,   110,   112,
+     116,   120,   122,   126,   128,   130,   134,   138,   142,   146,
+     150,   154
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
       38,     0,    -1,     3,    30,    39,    31,    -1,    -1,    39,
-      40,    -1,    41,    -1,    42,    -1,    43,    -1,    45,    -1,
-      46,    -1,    47,    -1,    48,    -1,    49,    -1,     4,    18,
-      11,    19,    32,    -1,    18,     5,    50,    32,    -1,     6,
-      33,    53,    34,     7,    30,    39,    31,    44,    -1,    -1,
-       8,    30,    39,    31,    -1,     9,    33,    53,    34,    30,
-      39,    31,    -1,    10,    33,    50,    34,    32,    -1,    12,
-      33,    18,    34,    35,    19,    32,    -1,    13,    33,    17,
-      34,    32,    -1,    14,    33,    17,    34,    32,    -1,    15,
-      33,    18,    36,    16,    19,    34,    32,    -1,    50,    26,
-      51,    -1,    50,    27,    51,    -1,    51,    -1,    51,    28,
-      52,    -1,    51,    29,    52,    -1,    52,    -1,    33,    50,
-      34,    -1,    17,    -1,    18,    -1,    50,    -1,    50,    20,
-      50,    -1,    50,    21,    50,    -1,    50,    22,    50,    -1,
-      50,    23,    50,    -1,    50,    24,    50,    -1,    50,    25,
-      50,    -1
+      40,    -1,    41,    -1,    42,    -1,    43,    -1,    47,    -1,
+      48,    -1,    49,    -1,    50,    -1,    51,    -1,     4,    18,
+      11,    19,    32,    -1,    18,     5,    52,    32,    -1,    -1,
+      -1,     6,    33,    55,    34,     7,    44,    30,    39,    31,
+      45,    46,    -1,    -1,     8,    30,    39,    31,    -1,     9,
+      33,    55,    34,    30,    39,    31,    -1,    10,    33,    52,
+      34,    32,    -1,    12,    33,    18,    34,    35,    19,    32,
+      -1,    13,    33,    17,    34,    32,    -1,    14,    33,    17,
+      34,    32,    -1,    15,    33,    18,    36,    16,    19,    34,
+      32,    -1,    52,    26,    53,    -1,    52,    27,    53,    -1,
+      53,    -1,    53,    28,    54,    -1,    53,    29,    54,    -1,
+      54,    -1,    33,    52,    34,    -1,    17,    -1,    18,    -1,
+      52,    20,    52,    -1,    52,    21,    52,    -1,    52,    22,
+      52,    -1,    52,    23,    52,    -1,    52,    24,    52,    -1,
+      52,    25,    52,    -1,    52,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    31,    31,    38,    40,    44,    45,    46,    47,    48,
-      49,    50,    51,    56,    70,    84,    89,    91,    97,   103,
-     113,   124,   130,   140,   150,   160,   170,   174,   184,   194,
-     198,   199,   209,   229,   230,   240,   250,   260,   270,   280
+       0,    34,    34,    41,    43,    47,    48,    49,    50,    51,
+      52,    53,    54,    58,    69,    83,   101,    82,   126,   128,
+     132,   138,   150,   159,   165,   174,   185,   192,   199,   203,
+     210,   217,   221,   222,   229,   246,   253,   260,   267,   274,
+     281,   288
 };
 #endif
 
@@ -487,9 +493,9 @@ static const char *const yytname[] =
   "FADEOUT", "MOVIMENTA", "PARA", "NUMBER", "IDENT", "STRING", "EQ", "NE",
   "LT", "GT", "LE", "GE", "'+'", "'-'", "'*'", "'/'", "'{'", "'}'", "';'",
   "'('", "')'", "':'", "','", "$accept", "programa", "lista_comandos",
-  "comando", "declaracao", "atribuicao", "condicional", "opt_corte",
-  "loop", "comando_especial", "dialogo", "efeito_transicao", "direcao",
-  "expressao", "termo", "fator", "expressao_relacional", 0
+  "comando", "declaracao", "atribuicao", "condicional", "@1", "@2",
+  "opt_corte", "loop", "comando_especial", "dialogo", "efeito_transicao",
+  "direcao", "expressao", "termo", "fator", "expressao_relacional", 0
 };
 #endif
 
@@ -509,18 +515,20 @@ static const yytype_uint16 yytoknum[] =
 static const yytype_uint8 yyr1[] =
 {
        0,    37,    38,    39,    39,    40,    40,    40,    40,    40,
-      40,    40,    40,    41,    42,    43,    44,    44,    45,    46,
-      47,    48,    48,    49,    50,    50,    50,    51,    51,    51,
-      52,    52,    52,    53,    53,    53,    53,    53,    53,    53
+      40,    40,    40,    41,    42,    44,    45,    43,    46,    46,
+      47,    48,    49,    50,    50,    51,    52,    52,    52,    53,
+      53,    53,    54,    54,    54,    55,    55,    55,    55,    55,
+      55,    55
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     4,     0,     2,     1,     1,     1,     1,     1,
-       1,     1,     1,     5,     4,     9,     0,     4,     7,     5,
-       7,     5,     5,     8,     3,     3,     1,     3,     3,     1,
-       3,     1,     1,     1,     3,     3,     3,     3,     3,     3
+       1,     1,     1,     5,     4,     0,     0,    11,     0,     4,
+       7,     5,     7,     5,     5,     8,     3,     3,     1,     3,
+       3,     1,     3,     1,     1,     3,     3,     3,     3,     3,
+       3,     1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -531,46 +539,46 @@ static const yytype_uint8 yydefact[] =
        0,     0,     0,     3,     1,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     2,     4,     5,     6,     7,
        8,     9,    10,    11,    12,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    31,    32,     0,    33,    26,
-      29,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    33,    34,     0,    41,    28,
+      31,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,    14,    13,
-      30,    34,    35,    36,    37,    38,    39,    24,    25,    27,
-      28,     0,     3,    19,     0,    21,    22,     0,     3,     0,
-       0,     0,     0,    18,    20,     0,    16,    23,     0,    15,
-       3,     0,    17
+      32,    35,    36,    37,    38,    39,    40,    26,    27,    29,
+      30,    15,     3,    21,     0,    23,    24,     0,     0,     0,
+       0,     0,     3,    20,    22,     0,     0,    25,    16,    18,
+       0,    17,     3,     0,    19
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     5,    16,    17,    18,    19,    99,    20,    21,
-      22,    23,    24,    38,    39,    40,    41
+      -1,     2,     5,    16,    17,    18,    19,    88,    99,   101,
+      20,    21,    22,    23,    24,    38,    39,    40,    41
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -68
+#define YYPACT_NINF -30
 static const yytype_int8 yypact[] =
 {
-       0,   -29,     6,   -68,   -68,    -2,    -4,   -16,   -13,   -11,
-       4,    13,    19,    25,    44,   -68,   -68,   -68,   -68,   -68,
-     -68,   -68,   -68,   -68,   -68,    20,     1,     1,     1,    43,
-      50,    67,    55,     1,    79,   -68,   -68,     1,    68,    35,
-     -68,    52,    65,    49,    66,    69,    70,    71,    16,    73,
-      51,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,    94,    72,    74,    75,    76,    77,    95,   -68,   -68,
-     -68,    53,    53,    53,    53,    53,    53,    35,    35,   -68,
-     -68,    82,   -68,   -68,    96,   -68,   -68,    97,   -68,    26,
-      81,    80,    41,   -68,   -68,    85,   110,   -68,    89,   -68,
-     -68,    56,   -68
+       3,   -29,    21,   -30,   -30,    -2,   -15,     1,     4,    13,
+      19,    25,    28,    31,    44,   -30,   -30,   -30,   -30,   -30,
+     -30,   -30,   -30,   -30,   -30,    20,     0,     0,     0,    49,
+      58,    65,    67,     0,    79,   -30,   -30,     0,    68,    -9,
+     -30,    66,    69,   -12,    70,    71,    72,    63,    16,    54,
+      50,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    94,    77,    76,    74,    78,    80,    86,   -30,   -30,
+     -30,    52,    52,    52,    52,    52,    52,    -9,    -9,   -30,
+     -30,   -30,   -30,   -30,    92,   -30,   -30,    95,    83,    26,
+      84,    81,   -30,   -30,   -30,    85,    41,   -30,   -30,   110,
+      89,   -30,   -30,    56,   -30
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -68,   -68,   -67,   -68,   -68,   -68,   -68,   -68,   -68,   -68,
-     -68,   -68,   -68,   -28,    24,    37,    93
+     -30,   -30,   -19,   -30,   -30,   -30,   -30,   -30,   -30,   -30,
+     -30,   -30,   -30,   -30,   -30,   -28,    23,    37,    93
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -580,35 +588,35 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      43,     3,     6,     1,     7,    48,     4,     8,     9,    50,
-      10,    11,    12,    13,    25,    89,    14,    26,    35,    36,
-      27,    92,    28,    71,    72,    73,    74,    75,    76,    15,
-       6,    34,     7,   101,    37,     8,     9,    29,    10,    11,
-      12,    13,    57,    58,    14,     6,    30,     7,    68,    33,
-       8,     9,    31,    10,    11,    12,    13,    93,    32,    14,
-       6,    44,     7,    59,    60,     8,     9,    45,    10,    11,
-      12,    13,    96,    47,    14,    57,    58,    57,    58,    57,
-      58,    77,    78,    63,    46,    70,    61,   102,    51,    52,
-      53,    54,    55,    56,    57,    58,    79,    80,    49,    62,
-      64,    81,    82,    65,    66,    69,    83,    67,    85,    86,
-      84,    87,    88,    94,    95,    90,    91,    97,    98,   100,
+      43,     3,     6,    25,     7,    48,     1,     8,     9,    50,
+      10,    11,    12,    13,    57,    58,    14,    35,    36,    59,
+      60,     4,    63,    71,    72,    73,    74,    75,    76,    15,
+       6,    34,     7,    37,    26,     8,     9,    27,    10,    11,
+      12,    13,    57,    58,    14,     6,    28,     7,    68,    33,
+       8,     9,    29,    10,    11,    12,    13,    93,    30,    14,
+       6,    31,     7,    89,    32,     8,     9,    44,    10,    11,
+      12,    13,    98,    96,    14,    45,    57,    58,    57,    58,
+      77,    78,    46,   103,    70,    47,    69,   104,    51,    52,
+      53,    54,    55,    56,    57,    58,    79,    80,    49,    67,
+      61,    81,    87,    62,    64,    65,    66,    82,    83,    84,
+      85,    90,    86,    92,    91,    95,    94,    97,   100,   102,
       42
 };
 
 static const yytype_uint8 yycheck[] =
 {
-      28,    30,     4,     3,     6,    33,     0,     9,    10,    37,
-      12,    13,    14,    15,    18,    82,    18,    33,    17,    18,
-      33,    88,    33,    51,    52,    53,    54,    55,    56,    31,
-       4,    11,     6,   100,    33,     9,    10,    33,    12,    13,
+      28,    30,     4,    18,     6,    33,     3,     9,    10,    37,
+      12,    13,    14,    15,    26,    27,    18,    17,    18,    28,
+      29,     0,    34,    51,    52,    53,    54,    55,    56,    31,
+       4,    11,     6,    33,    33,     9,    10,    33,    12,    13,
       14,    15,    26,    27,    18,     4,    33,     6,    32,     5,
        9,    10,    33,    12,    13,    14,    15,    31,    33,    18,
-       4,    18,     6,    28,    29,     9,    10,    17,    12,    13,
-      14,    15,    31,    18,    18,    26,    27,    26,    27,    26,
-      27,    57,    58,    34,    17,    34,    34,    31,    20,    21,
-      22,    23,    24,    25,    26,    27,    59,    60,    19,    34,
-      34,     7,    30,    34,    34,    32,    32,    36,    32,    32,
-      35,    16,    30,    32,    34,    19,    19,    32,     8,    30,
+       4,    33,     6,    82,    33,     9,    10,    18,    12,    13,
+      14,    15,    31,    92,    18,    17,    26,    27,    26,    27,
+      57,    58,    17,   102,    34,    18,    32,    31,    20,    21,
+      22,    23,    24,    25,    26,    27,    59,    60,    19,    36,
+      34,     7,    16,    34,    34,    34,    34,    30,    32,    35,
+      32,    19,    32,    30,    19,    34,    32,    32,     8,    30,
       27
 };
 
@@ -618,15 +626,15 @@ static const yytype_uint8 yystos[] =
 {
        0,     3,    38,    30,     0,    39,     4,     6,     9,    10,
       12,    13,    14,    15,    18,    31,    40,    41,    42,    43,
-      45,    46,    47,    48,    49,    18,    33,    33,    33,    33,
-      33,    33,    33,     5,    11,    17,    18,    33,    50,    51,
-      52,    53,    53,    50,    18,    17,    17,    18,    50,    19,
-      50,    20,    21,    22,    23,    24,    25,    26,    27,    28,
+      47,    48,    49,    50,    51,    18,    33,    33,    33,    33,
+      33,    33,    33,     5,    11,    17,    18,    33,    52,    53,
+      54,    55,    55,    52,    18,    17,    17,    18,    52,    19,
+      52,    20,    21,    22,    23,    24,    25,    26,    27,    28,
       29,    34,    34,    34,    34,    34,    34,    36,    32,    32,
-      34,    50,    50,    50,    50,    50,    50,    51,    51,    52,
-      52,     7,    30,    32,    35,    32,    32,    16,    30,    39,
-      19,    19,    39,    31,    32,    34,    31,    32,     8,    44,
-      30,    39,    31
+      34,    52,    52,    52,    52,    52,    52,    53,    53,    54,
+      54,     7,    30,    32,    35,    32,    32,    16,    44,    39,
+      19,    19,    30,    31,    32,    34,    39,    32,    31,    45,
+       8,    46,    30,    39,    31
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1441,313 +1449,314 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 31 "src/parser.y"
+#line 34 "src/parser.y"
     {
-       finalize_codegen();
-       run_codegen();
-       cleanup_vm();
+        finalize_codegen();
+        run_codegen();
+        cleanup_vm();
     ;}
     break;
 
   case 13:
-#line 56 "src/parser.y"
+#line 58 "src/parser.y"
     {
-         /* Gera código para alocar a variável */
-         char *alloc_reg = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = alloca i32", alloc_reg);
-             emit_code(buf);
-         }
-         add_symbol((yyvsp[(2) - (5)].reg), alloc_reg);
-         free((yyvsp[(2) - (5)].reg)); free((yyvsp[(4) - (5)].reg));
+        char *alloc = new_temp();
+        char buf[128];
+        sprintf(buf, "  %s = alloca i32", alloc);
+        emit_code(buf);
+        add_symbol((yyvsp[(2) - (5)].reg), alloc);
+        free((yyvsp[(2) - (5)].reg)); free((yyvsp[(4) - (5)].reg));
     ;}
     break;
 
   case 14:
-#line 70 "src/parser.y"
+#line 69 "src/parser.y"
     {
-         const char *alloc_reg = get_symbol_alloca((yyvsp[(1) - (4)].reg));
-         if (!alloc_reg) {
-             yyerror("Variável não declarada");
-         } else {
-             char buf[256];
-             sprintf(buf, "  store i32 %s, i32* %s", (yyvsp[(3) - (4)].reg), alloc_reg);
-             emit_code(buf);
-         }
-         free((yyvsp[(1) - (4)].reg));
+        const char *a = get_symbol_alloca((yyvsp[(1) - (4)].reg));
+        if (!a) yyerror("Variável não declarada");
+        else {
+            char buf[128];
+            sprintf(buf, "  store i32 %s, i32* %s", (yyvsp[(3) - (4)].reg), a);
+            emit_code(buf);
+        }
+        free((yyvsp[(1) - (4)].reg));
     ;}
     break;
 
   case 15:
-#line 84 "src/parser.y"
+#line 83 "src/parser.y"
     {
-         emit_code("  ; Estrutura condicional (if) não implementada completamente");
+        char *cond = (yyvsp[(3) - (5)].reg);
+        char *Lthen = new_label();
+        char *Lelse = new_label();
+        char *Lend  = new_label();
+        then_stack[if_count] = Lthen;
+        else_stack[if_count] = Lelse;
+        end_stack[if_count]  = Lend;
+        if_count++;
+
+        char buf[256];
+        sprintf(buf, "  br i1 %s, label %%%s, label %%%s", cond, Lthen, Lelse);
+        emit_code(buf);
+        sprintf(buf, "%s:", Lthen);
+        emit_code(buf);
+        free(cond);
+    ;}
+    break;
+
+  case 16:
+#line 101 "src/parser.y"
+    {
+        char *Lthen = then_stack[if_count-1];
+        char *Lelse = else_stack[if_count-1];
+        char *Lend  = end_stack[if_count-1];
+        char buf[256];
+        sprintf(buf, "  br label %%%s", Lend);
+        emit_code(buf);
+        sprintf(buf, "%s:", Lelse);
+        emit_code(buf);
     ;}
     break;
 
   case 17:
-#line 91 "src/parser.y"
+#line 112 "src/parser.y"
     {
-         emit_code("  ; Bloco 'corte' (else) não implementado");
-    ;}
-    break;
-
-  case 18:
-#line 97 "src/parser.y"
-    {
-         emit_code("  ; Loop não implementado completamente");
-    ;}
-    break;
-
-  case 19:
-#line 103 "src/parser.y"
-    {
-         char buf[256];
-         sprintf(buf, "  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @print.str, i32 0, i32 0), i32 %s)", (yyvsp[(3) - (5)].reg));
-         emit_code(buf);
-         free((yyvsp[(3) - (5)].reg));
+        char *Lend = end_stack[if_count-1];
+        char buf[256];
+        sprintf(buf, "  br label %%%s", Lend);
+        emit_code(buf);
+        sprintf(buf, "%s:", Lend);
+        emit_code(buf);
+        free(then_stack[if_count-1]);
+        free(else_stack[if_count-1]);
+        free(end_stack[if_count-1]);
+        if_count--;
     ;}
     break;
 
   case 20:
-#line 113 "src/parser.y"
+#line 132 "src/parser.y"
     {
-         char buf[256];
-         /* $3 contém o IDENT e $6 a STRING */
-         sprintf(buf, "  ; Dialogo: %s diz %s", (yyvsp[(3) - (7)].reg), (yyvsp[(6) - (7)].reg));
-         emit_code(buf);
-         free((yyvsp[(3) - (7)].reg)); free((yyvsp[(6) - (7)].reg));
+        emit_code("  ; loop não implementado");
     ;}
     break;
 
   case 21:
-#line 124 "src/parser.y"
+#line 138 "src/parser.y"
     {
-         char buf[256];
-         sprintf(buf, "  ; Efeito: fadein %s", (yyvsp[(3) - (5)].reg));
-         emit_code(buf);
-         free((yyvsp[(3) - (5)].reg));
+        char buf[256];
+        sprintf(buf,
+            "  call i32 (i8*, ...) @printf(i8* "
+            "getelementptr inbounds ([4 x i8], [4 x i8]* @print.str, i32 0, i32 0), i32 %s)",
+            (yyvsp[(3) - (5)].reg));
+        emit_code(buf);
+        free((yyvsp[(3) - (5)].reg));
     ;}
     break;
 
   case 22:
-#line 130 "src/parser.y"
+#line 150 "src/parser.y"
     {
-         char buf[256];
-         sprintf(buf, "  ; Efeito: fadeout %s", (yyvsp[(3) - (5)].reg));
-         emit_code(buf);
-         free((yyvsp[(3) - (5)].reg));
+        char buf[128];
+        sprintf(buf, "  ; diálogo: %s diz %s", (yyvsp[(3) - (7)].reg), (yyvsp[(6) - (7)].reg));
+        emit_code(buf);
+        free((yyvsp[(3) - (7)].reg)); free((yyvsp[(6) - (7)].reg));
     ;}
     break;
 
   case 23:
-#line 140 "src/parser.y"
+#line 159 "src/parser.y"
     {
-         char buf[256];
-         sprintf(buf, "  ; Direcao: movimenta %s para %s", (yyvsp[(3) - (8)].reg), (yyvsp[(6) - (8)].reg));
-         emit_code(buf);
-         free((yyvsp[(3) - (8)].reg)); free((yyvsp[(6) - (8)].reg));
+        char buf[64];
+        sprintf(buf, "  ; fadein %s", (yyvsp[(3) - (5)].reg));
+        emit_code(buf);
+        free((yyvsp[(3) - (5)].reg));
     ;}
     break;
 
   case 24:
-#line 150 "src/parser.y"
+#line 165 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = add i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
-      ;}
+        char buf[64];
+        sprintf(buf, "  ; fadeout %s", (yyvsp[(3) - (5)].reg));
+        emit_code(buf);
+        free((yyvsp[(3) - (5)].reg));
+    ;}
     break;
 
   case 25:
-#line 160 "src/parser.y"
+#line 174 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = sub i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
-      ;}
+        char buf[128];
+        sprintf(buf, "  ; movimenta %s para %s", (yyvsp[(3) - (8)].reg), (yyvsp[(6) - (8)].reg));
+        emit_code(buf);
+        free((yyvsp[(3) - (8)].reg)); free((yyvsp[(6) - (8)].reg));
+    ;}
     break;
 
   case 26:
-#line 170 "src/parser.y"
-    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
+#line 185 "src/parser.y"
+    {
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = add i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 27:
-#line 174 "src/parser.y"
+#line 192 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = mul i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = sub i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
       ;}
     break;
 
   case 28:
-#line 184 "src/parser.y"
-    {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = sdiv i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
-      ;}
+#line 199 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
   case 29:
-#line 194 "src/parser.y"
-    { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
+#line 203 "src/parser.y"
+    {
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = mul i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 30:
-#line 198 "src/parser.y"
-    { (yyval.reg) = (yyvsp[(2) - (3)].reg); ;}
+#line 210 "src/parser.y"
+    {
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = sdiv i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+      ;}
     break;
 
   case 31:
-#line 199 "src/parser.y"
-    {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = add i32 0, %s", temp, (yyvsp[(1) - (1)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (1)].reg));
-      ;}
-    break;
-
-  case 32:
-#line 209 "src/parser.y"
-    {
-         const char *alloc_reg = get_symbol_alloca((yyvsp[(1) - (1)].reg));
-         if (!alloc_reg) {
-             yyerror("Variável não declarada");
-             (yyval.reg) = strdup("0");
-         } else {
-             char *temp = new_temp();
-             {
-                 char buf[256];
-                 sprintf(buf, "  %s = load i32, i32* %s", temp, alloc_reg);
-                 emit_code(buf);
-             }
-             (yyval.reg) = temp;
-         }
-         free((yyvsp[(1) - (1)].reg));
-      ;}
-    break;
-
-  case 33:
-#line 229 "src/parser.y"
+#line 217 "src/parser.y"
     { (yyval.reg) = (yyvsp[(1) - (1)].reg); ;}
     break;
 
-  case 34:
-#line 230 "src/parser.y"
+  case 32:
+#line 221 "src/parser.y"
+    { (yyval.reg) = (yyvsp[(2) - (3)].reg); ;}
+    break;
+
+  case 33:
+#line 222 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp eq i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[64];
+          sprintf(buf, "  %s = add i32 0, %s", t, (yyvsp[(1) - (1)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (1)].reg));
+      ;}
+    break;
+
+  case 34:
+#line 229 "src/parser.y"
+    {
+          const char *a = get_symbol_alloca((yyvsp[(1) - (1)].reg));
+          if (!a) { yyerror("Variável não declarada"); (yyval.reg) = strdup("0"); }
+          else {
+              char *t = new_temp();
+              char buf[64];
+              sprintf(buf, "  %s = load i32, i32* %s", t, a);
+              emit_code(buf);
+              (yyval.reg) = t;
+          }
+          free((yyvsp[(1) - (1)].reg));
       ;}
     break;
 
   case 35:
-#line 240 "src/parser.y"
+#line 246 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp ne i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp eq i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
       ;}
     break;
 
   case 36:
-#line 250 "src/parser.y"
+#line 253 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp slt i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp ne i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
       ;}
     break;
 
   case 37:
 #line 260 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp sgt i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp slt i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
       ;}
     break;
 
   case 38:
-#line 270 "src/parser.y"
+#line 267 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp sle i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp sgt i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
       ;}
     break;
 
   case 39:
-#line 280 "src/parser.y"
+#line 274 "src/parser.y"
     {
-         char *temp = new_temp();
-         {
-             char buf[256];
-             sprintf(buf, "  %s = icmp sge i32 %s, %s", temp, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
-             emit_code(buf);
-         }
-         (yyval.reg) = temp;
-         free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp sle i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+      ;}
+    break;
+
+  case 40:
+#line 281 "src/parser.y"
+    {
+          char *t = new_temp();
+          char buf[128];
+          sprintf(buf, "  %s = icmp sge i32 %s, %s", t, (yyvsp[(1) - (3)].reg), (yyvsp[(3) - (3)].reg));
+          emit_code(buf);
+          (yyval.reg) = t; free((yyvsp[(1) - (3)].reg)); free((yyvsp[(3) - (3)].reg));
+      ;}
+    break;
+
+  case 41:
+#line 288 "src/parser.y"
+    {
+          /* fallback: sem comparação, apenas retorna o valor i32 */
+          (yyval.reg) = (yyvsp[(1) - (1)].reg);
       ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1751 "src/parser.tab.c"
+#line 1760 "src/parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1961,7 +1970,7 @@ yyreturn:
 }
 
 
-#line 292 "src/parser.y"
+#line 294 "src/parser.y"
 
 
 void yyerror(const char *s) {

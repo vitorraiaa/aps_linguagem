@@ -1,0 +1,7 @@
+filme {
+  ator i como "Herói";
+  take (i < 3) {
+    trilha(i);
+    i interpreta i + 1;
+  }
+}

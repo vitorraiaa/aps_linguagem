@@ -1,4 +1,4 @@
-/* src/parser.y */
+/* parser.y - versão com loop totalmente generalizado usando gen_relacional_loop */
 
 %{
 #include <stdio.h>
@@ -15,7 +15,7 @@ void fade_out(int t);
 void yyerror(const char *s);
 extern int yylex(void);
 
-/* Pilhas para gerenciar rótulos de IF nested */
+// Pilhas para gerenciar rótulos de IF nested
 static char *then_stack[100], *else_stack[100], *end_stack[100];
 static int  if_count = 0;
 %}
@@ -29,7 +29,7 @@ static int  if_count = 0;
 %token <reg> NUMBER IDENT STRING
 %token EQ NE LT GT LE GE
 
-%type <reg> expressao termo fator expressao_relacional
+%type <reg> expressao termo fator expressao_relacional operador
 
 %left '+' '-'
 %left '*' '/'
@@ -136,9 +136,59 @@ opt_corte:
     ;
 
 loop:
-    TAKE '(' expressao_relacional ')' '{' lista_comandos '}' {
-        emit_code("  ; loop não implementado");
+    TAKE '(' IDENT operador NUMBER ')' '{'
+    {
+        char *label_cond = new_label();
+        char *label_body = new_label();
+        char *label_end  = new_label();
+
+        then_stack[if_count] = label_cond;
+        else_stack[if_count] = label_end;
+        end_stack[if_count]  = label_body;
+        if_count++;
+
+        char buf[128];
+        sprintf(buf, "  br label %%%s", label_cond);
+        emit_code(buf);
+
+        sprintf(buf, "%s:", label_cond);
+        emit_code(buf);
+
+        char *cond = gen_relacional_loop($3, $4, $5);
+        sprintf(buf, "  br i1 %s, label %%%s, label %%%s", cond, label_body, label_end);
+        emit_code(buf);
+        free(cond);
+        free($3); free($4); free($5);
+
+        sprintf(buf, "%s:", label_body);
+        emit_code(buf);
     }
+    lista_comandos '}'
+    {
+        char *label_cond = then_stack[if_count-1];
+        char *label_end  = else_stack[if_count-1];
+
+        char buf[128];
+        sprintf(buf, "  br label %%%s", label_cond);
+        emit_code(buf);
+
+        sprintf(buf, "%s:", label_end);
+        emit_code(buf);
+
+        free(then_stack[if_count-1]);
+        free(else_stack[if_count-1]);
+        free(end_stack[if_count-1]);
+        if_count--;
+    }
+    ;
+
+operador:
+      LT { $$ = strdup("<"); }
+    | GT { $$ = strdup(">"); }
+    | EQ { $$ = strdup("=="); }
+    | NE { $$ = strdup("!="); }
+    | LE { $$ = strdup("<="); }
+    | GE { $$ = strdup(">="); }
     ;
 
 comando_especial:
@@ -177,8 +227,6 @@ direcao:
         free($3); free($6);
     }
     ;
-
-/* EXPRESSÕES ARITMÉTICAS (permanece igual) */
 
 expressao:
       expressao '+' termo {
@@ -281,9 +329,6 @@ expressao_relacional:
           sprintf(buf, "  %s = icmp sge i32 %s, %s", t, $1, $3);
           emit_code(buf);
           $$ = t; free($1); free($3);
-      }
-    | expressao {
-          $$ = $1;
       }
     ;
 

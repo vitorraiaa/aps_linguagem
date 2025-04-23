@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+void yyerror(const char *s);  // Adicionado para permitir chamadas de erro
+
 static FILE *fp = NULL;
 static int temp_counter  = 1;
 static int label_counter = 1;
@@ -81,3 +83,47 @@ void cleanup_vm() {
         free(symtab[i].alloca_reg);
     }
 }
+
+// Função para recompilar condição (placeholder: apenas retorna cópia do registrador)
+char* gen_condition_again(const char* reg) {
+    return strdup(reg);
+}
+
+// Gera comparação LLVM para condições simples como: X < 3
+char* gen_relacional_loop(const char* var, const char* op, const char* valor) {
+    const char *aloc = get_symbol_alloca(var);
+    if (!aloc) {
+        yyerror("Variável usada no loop não declarada");
+        return strdup("0");
+    }
+
+    char buf[128];
+    char *reg_var = new_temp();
+    sprintf(buf, "  %s = load i32, i32* %s", reg_var, aloc);
+    emit_code(buf);
+
+    char *reg_const = new_temp();
+    sprintf(buf, "  %s = add i32 0, %s", reg_const, valor);
+    emit_code(buf);
+
+    char *reg_cmp = new_temp();
+    if (strcmp(op, "<") == 0)
+        sprintf(buf, "  %s = icmp slt i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else if (strcmp(op, ">") == 0)
+        sprintf(buf, "  %s = icmp sgt i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else if (strcmp(op, "==") == 0)
+        sprintf(buf, "  %s = icmp eq i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else if (strcmp(op, "!=") == 0)
+        sprintf(buf, "  %s = icmp ne i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else if (strcmp(op, "<=") == 0)
+        sprintf(buf, "  %s = icmp sle i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else if (strcmp(op, ">=") == 0)
+        sprintf(buf, "  %s = icmp sge i32 %s, %s", reg_cmp, reg_var, reg_const);
+    else {
+        yyerror("Operador relacional inválido");
+        return strdup("0");
+    }
+
+    emit_code(buf);
+    return reg_cmp;
+} 

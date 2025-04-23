@@ -1,7 +1,9 @@
 filme {
-  ator i como "Herói";
-  take (i < 3) {
-    trilha(i);
-    i interpreta i + 1;
-  }
+    ator X como "contador";
+    X interpreta 0;
+
+    take (X < 3) {
+        trilha (1);
+        X interpreta X + 1;
+    }
 }
